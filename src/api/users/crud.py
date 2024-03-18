@@ -33,8 +33,6 @@ def update_user(user, fname=None, lname=None, username=None):
     return user
 
 
-
-
 def delete_user(user):
     db.session.delete(user)
     db.session.commit()
