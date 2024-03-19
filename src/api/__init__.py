@@ -3,7 +3,7 @@ from flask_restx import Api
 from src.api.ping import ping_namespace  
 from src.api.users.views import users_namespace  
 
-api = Api()
+api = Api(prefix="/api")
 
 
 

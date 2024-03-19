@@ -18,6 +18,7 @@ def add_user(fname, lname, username):
     user = User(fname= fname, lname= lname, username=username)
     db.session.add(user)
     db.session.commit()
+    db.session.close()
     return user
 
 
@@ -30,10 +31,12 @@ def update_user(user, fname=None, lname=None, username=None):
         user.username = username
 
     db.session.commit()
+    db.session.close()
     return user
 
 
 def delete_user(user):
     db.session.delete(user)
     db.session.commit()
+    db.session.close()
     return user
