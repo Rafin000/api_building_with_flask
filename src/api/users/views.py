@@ -1,4 +1,3 @@
-
 from flask import request
 from flask_restx import Resource, Api, fields , Namespace
 from sqlalchemy.sql import func
@@ -30,7 +29,7 @@ class UsersList(Resource):
 
         user = get_user_by_username(username)  
         if user:
-            response_object['message'] = 'Sorry. That email already exists.'
+            response_object['message'] = 'Sorry. That username already exists.'
             return response_object, 400
 
         add_user(fname, lname, username) 
