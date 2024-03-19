@@ -83,7 +83,7 @@ class Users(Resource):
 
 
     def delete(self, user_id):
-        """"Deletes a user."""  
+        """Deletes a user."""  
         response_object = {}
         user = get_user_by_id(user_id)
 
