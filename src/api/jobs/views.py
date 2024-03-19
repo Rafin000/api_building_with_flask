@@ -3,7 +3,6 @@ from flask import request
 from flask_restx import Namespace, fields, Resource
 from src.api.jobs.crud import add_job, get_all_jobs_by_user_id, get_current_job_by_user_id, get_job_by_title_company_start_date, update_job_end_date
 from src.api.users.crud import get_user_by_id
-from sqlalchemy.exc import SQLAlchemyError
 
 jobs_namespace = Namespace("jobs")
 
@@ -67,7 +66,6 @@ class CurrentJob(Resource):
             return response_object, 400
         
         current_job = get_current_job_by_user_id(user_id)
-
         if not current_job:
             jobs_namespace.abort(404, f"User {user_id} has no current job") 
 
