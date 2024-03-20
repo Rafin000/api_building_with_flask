@@ -32,7 +32,6 @@ def update_user(user, fname=None, lname=None, username=None, password=None):
     if password is not None:
         user.password = generate_password_hash(password)
 
-
     db.session.commit()
     db.session.close()
     return user

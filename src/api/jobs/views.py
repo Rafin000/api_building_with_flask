@@ -1,8 +1,8 @@
-from datetime import datetime
 from flask import request
 from flask_restx import Namespace, fields, Resource
-from src.api.auth import verify_token
+from src.api.decorators import token_required
 from src.api.jobs.crud import add_job, get_all_jobs_by_user_id, get_current_job_by_user_id, get_job_by_title_company_start_date, update_job_end_date
+from src.api.jobs.helpers import convert_string_to_date
 from src.api.users.crud import get_user_by_id
 
 jobs_namespace = Namespace("jobs")
@@ -18,79 +18,53 @@ job = jobs_namespace.model('Job', {
 
 
 class Jobs(Resource):
+    @token_required
     @jobs_namespace.expect(job, validate=True)
-    def post(self):
+    def post(self, payload):
+
         """Creates a new job of a user."""
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            jobs_namespace.abort(401, "Missing authorization header") 
 
-        token = auth_header.split(' ')[1]
-        payload = verify_token(token)
-
-        if not payload:
-            jobs_namespace.abort(401, "Invalid token") 
-
-        user_id = payload.get('user_id')
+        user_id = payload['user_id']
         if not user_id:
-            jobs_namespace.abort(401, 'User ID not found in token')
+            jobs_namespace.abort(404, 'User ID not found in token')
         
         post_data = request.get_json()
         title = post_data.get('title')
         company = post_data.get('company')
-        str_start_date = post_data.get('start_date')
-        str_end_date = post_data.get('end_date') 
-        response_object = {}
+        start_date,end_date = convert_string_to_date(post_data.get('start_date'),post_data.get('end_date') )
 
-        start_date = datetime.strptime(str_start_date, '%Y-%m-%d').date()
-        if str_end_date is not None:
-            end_date = datetime.strptime(str_end_date, '%Y-%m-%d').date()
-        else:
-            end_date = None
         user = get_user_by_id(user_id=user_id)
         if not user:
-            response_object['message'] = 'Sorry. That user does not exists.'
-            return response_object, 400
+            jobs_namespace.abort(400, 'Sorry. That user does not exist.')
         
-        if get_job_by_title_company_start_date(title=title, company=company, start_date=start_date):
-            response_object['message'] = 'There already exist job with same name and company and start date for this user'
-            return response_object, 400
+        if get_job_by_title_company_start_date(title=title, company=company, start_date=start_date, user_id=user_id):
+            jobs_namespace.abort(400, 'There already exist job with same name and company and start date for this user')
         
         if end_date is not None and start_date > end_date:
-            response_object['message'] = 'Start date cant be greater than End date'
-            return response_object, 400
+            jobs_namespace.abort(400, 'Start date cant be greater than End date')
         
         if end_date is None:
             update_job_end_date(end_date=start_date)
 
         add_job(title=title, company=company, user_id=user_id, start_date=start_date, end_date=end_date)
-        response_object['message'] = f'Job {title} was added for user with id {user_id}!'
-        return response_object, 201
+        return {'message' : f'Job {title} was added for user with id {user_id}!'}, 201
 
     
 
 class CurrentJob(Resource):
+    @token_required
     @jobs_namespace.marshal_with(job, as_list=True)
-    def get(self):
-        """Returns current job of the authenticated user."""
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            jobs_namespace.abort(401, "Missing authorization header") 
-        
-        token = auth_header.split(" ")[1]
-        payload = verify_token(token)
-        if not payload:
-            jobs_namespace.abort(401, "Invalid token") 
+    def get(self,payload):
 
-        user_id = payload["user_id"]
+        """Returns current job of the authenticated user."""
+
+        user_id = payload['user_id']
         if not user_id:
-            jobs_namespace.abort(401, 'User ID not found in token')
+            jobs_namespace.abort(404, 'User ID not found in token')
         
-        response_object = {}
         user = get_user_by_id(user_id)
         if not user:
-            response_object['message'] = 'Sorry. That user does not exists.'
-            return response_object, 400
+            jobs_namespace.abort(400, 'Sorry. That user does not exist.')
         
         current_job = get_current_job_by_user_id(user_id)
         if not current_job:
@@ -101,31 +75,22 @@ class CurrentJob(Resource):
 
 
 class JobList(Resource):
+    @token_required
     @jobs_namespace.marshal_with(job, as_list=True)
-    def get(self):
+    def get(self, payload):
+
         """get all jobs of a user"""
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            jobs_namespace.abort(401, "Missing authorization header")
 
-        token = auth_header.split(' ')[1]
-        payload = verify_token(token)
-
-        if not payload:
-            jobs_namespace.abort(401, "Invalid token") 
-
-        user_id = payload["user_id"]
+        user_id = payload['user_id']
         if not user_id:
-            jobs_namespace.abort(401, 'User ID not found in token')
+            jobs_namespace.abort(404, 'User ID not found in token')
         
-        response_object = {}
         user = get_user_by_id(user_id=user_id)
         if not user:
-            response_object['message'] = 'Sorry. That user does not exists.'
-            return response_object, 400
-        
+            jobs_namespace.abort(400, 'Sorry. That user does not exist.')
+
         return get_all_jobs_by_user_id(user_id), 200
-    
+
 
 
 jobs_namespace.add_resource(Jobs, "/")    

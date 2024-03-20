@@ -1,5 +1,4 @@
 from src.api.jobs.models import Job
-# from src.api.jobs.transformer import job_model_to_dict
 from src import db
 from sqlalchemy.exc import SQLAlchemyError
 

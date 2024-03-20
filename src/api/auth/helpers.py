@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
 from flask import current_app
 import jwt
+from datetime import datetime, timedelta
 
 from src.api.users.crud import get_user_by_username
+
 
 def verify_token(token):
     try:
@@ -26,14 +27,8 @@ def generate_token(user_id):
         return e
 
 
-
-
 def authenticate_user(username, password):
     user = get_user_by_username(username)
     if not user or not user.check_password(password):
         return {'message' : "Authentication Failed"}
-    
     return user
-
-
-
