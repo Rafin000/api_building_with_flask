@@ -1,9 +1,10 @@
 from src import db
+from src.api.users.transformers import transform_user
 from src.api.users.models import User
 from werkzeug.security import generate_password_hash
 
 def get_all_users():
-    return User.query.all()
+    return [transform_user(user) for user in User.query.all()]
 
 
 def get_user_by_id(user_id):

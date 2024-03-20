@@ -2,6 +2,7 @@ from flask import request
 from flask_restx import Resource, fields , Namespace
 from src.api.users.crud import add_user, delete_user, get_all_users, get_user_by_id, update_user, get_user_by_username
 from src.api.users.crud import add_user
+from src.api.users.transformers import transform_user
 
 users_namespace = Namespace("users") 
 
@@ -53,7 +54,7 @@ class Users(Resource):
         user = get_user_by_id(user_id)  
         if not user:
             users_namespace.abort(404, f"User {user_id} does not exist")
-        return user, 200
+        return transform_user(user), 200
     
 
 

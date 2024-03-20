@@ -5,3 +5,5 @@ def verify_user(username, password):
     if user and user.check_password(password):
         return user
     return None
+
+
