@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import request
 from flask_restx import Namespace, fields, Resource
+from src.api.auth import verify_token
 from src.api.jobs.crud import add_job, get_all_jobs_by_user_id, get_current_job_by_user_id, get_job_by_title_company_start_date, update_job_end_date
 from src.api.users.crud import get_user_by_id
 
@@ -18,8 +19,22 @@ job = jobs_namespace.model('Job', {
 
 class Jobs(Resource):
     @jobs_namespace.expect(job, validate=True)
-    def post(self,user_id):
+    def post(self):
         """Creates a new job of a user."""
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            jobs_namespace.abort(401, "Missing authorization header") 
+
+        token = auth_header.split(' ')[1]
+        payload = verify_token(token)
+
+        if not payload:
+            jobs_namespace.abort(401, "Invalid token") 
+
+        user_id = payload.get('user_id')
+        if not user_id:
+            jobs_namespace.abort(401, 'User ID not found in token')
+        
         post_data = request.get_json()
         title = post_data.get('title')
         company = post_data.get('company')
@@ -56,11 +71,23 @@ class Jobs(Resource):
 
 class CurrentJob(Resource):
     @jobs_namespace.marshal_with(job, as_list=True)
-    def get(self, user_id):
-        """Returns current job of a user."""  
-        user = get_user_by_id(user_id=user_id)
-        response_object = {}
+    def get(self):
+        """Returns current job of the authenticated user."""
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            jobs_namespace.abort(401, "Missing authorization header") 
+        
+        token = auth_header.split(" ")[1]
+        payload = verify_token(token)
+        if not payload:
+            jobs_namespace.abort(401, "Invalid token") 
 
+        user_id = payload["user_id"]
+        if not user_id:
+            jobs_namespace.abort(401, 'User ID not found in token')
+        
+        response_object = {}
+        user = get_user_by_id(user_id)
         if not user:
             response_object['message'] = 'Sorry. That user does not exists.'
             return response_object, 400
@@ -75,8 +102,22 @@ class CurrentJob(Resource):
 
 class JobList(Resource):
     @jobs_namespace.marshal_with(job, as_list=True)
-    def get(self, user_id):
+    def get(self):
         """get all jobs of a user"""
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            jobs_namespace.abort(401, "Missing authorization header")
+
+        token = auth_header.split(' ')[1]
+        payload = verify_token(token)
+
+        if not payload:
+            jobs_namespace.abort(401, "Invalid token") 
+
+        user_id = payload["user_id"]
+        if not user_id:
+            jobs_namespace.abort(401, 'User ID not found in token')
+        
         response_object = {}
         user = get_user_by_id(user_id=user_id)
         if not user:
@@ -87,9 +128,9 @@ class JobList(Resource):
     
 
 
-jobs_namespace.add_resource(Jobs, "/<int:user_id>")    
-jobs_namespace.add_resource(CurrentJob, "/current/<int:user_id>")    
-jobs_namespace.add_resource(JobList, "/history/<int:user_id>")    
+jobs_namespace.add_resource(Jobs, "/")    
+jobs_namespace.add_resource(CurrentJob, "/current")    
+jobs_namespace.add_resource(JobList, "/history")    
 
 
 
