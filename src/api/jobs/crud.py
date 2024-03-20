@@ -20,8 +20,8 @@ def get_current_job_by_user_id(user_id):
     return current_job
 
 
-def get_job_by_title_company_start_date(title, company, start_date):
-    return Job.query.filter_by(title=title,company=company,start_date=start_date).first()
+def get_job_by_title_company_start_date(title, company, start_date, user_id):
+    return Job.query.filter_by(title=title,company=company,start_date=start_date, user_id=user_id).first()
 
 
 def update_job_end_date(end_date):
