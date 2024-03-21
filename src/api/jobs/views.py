@@ -3,6 +3,7 @@ from flask_restx import Namespace, fields, Resource
 from src.api.decorators import token_required
 from src.api.jobs.crud import add_job, get_all_jobs_by_user_id, get_current_job_by_user_id, get_job_by_title_company_start_date, update_job_end_date
 from src.api.jobs.helpers import convert_string_to_date
+from src.api.jobs.models import Job
 from src.api.users.crud import get_user_by_id
 
 jobs_namespace = Namespace("jobs")
@@ -42,6 +43,16 @@ class Jobs(Resource):
         
         if end_date is not None and start_date > end_date:
             jobs_namespace.abort(400, 'Start date cant be greater than End date')
+
+        latest_job = get_all_jobs_by_user_id(user_id=user_id)
+        
+        if end_date:
+            if start_date < latest_job[0].end_date:
+                jobs_namespace.abort(400, 'Invalid date for new job')
+
+        if not end_date:
+            if start_date < latest_job[0].start_date:
+                jobs_namespace.abort(400, 'Invalid date for new job')
         
         if end_date is None:
             update_job_end_date(end_date=start_date)

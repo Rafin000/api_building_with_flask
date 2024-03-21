@@ -16,7 +16,7 @@ def get_current_job_by_user_id(user_id):
     current_job = Job.query.filter_by(user_id=user_id, end_date=None).first()
     if not current_job:
         response_object['message'] = f"No current Job for User {user_id}"
-        return response_object, 200
+        return response_object, 404
     return current_job
 
 
@@ -51,3 +51,32 @@ def add_job(title, company, user_id, start_date, end_date):
         return response_object, 500
     
     
+#         if end_year:
+#             jobs = get_all_job_by_user_id(user_id=user_id)
+#             temp_job= JobModel(title=title, company=company, start_year=start_year, end_year=end_year, user_id=user_id)
+#             jobs.append(temp_job)
+#             sorted_jobs = sorted(jobs, key=lambda x: x.start_year)
+#             flag = False
+#             time = sorted_jobs[0].end_year
+#             conflict_company= None
+#             for j in sorted_jobs[1::]:
+#                 #print(f"Job ID: {j.id}, Title: {j.title}, Company: {j.company}, Start Year: {j.start_year}, End Year: {j.end_year}, User ID: {j.user_id}")
+#                 if time > j.start_year:
+#                     flag = True
+#                     conflict_company= j.company
+#                     break
+#                 time = j.end_year
+#             if  flag:
+#                 response['message'] = f'during this time you were woring with {conflict_company}' 
+#                 return response, 400
+            
+#         if not end_year:
+#             last_job = get_job_by_user_id_start_year_desc(user_id=user_id)
+#             if last_job and last_job.end_year and  last_job.end_year > start_year:
+#                 response['message'] = f'your starting time clash with recent job {last_job.company}' 
+#                 return response, 400
+#             elif  last_job and not last_job.end_year:
+#                 response['message'] = f'give end_year to your last job' 
+#                 return response, 400
+
+
