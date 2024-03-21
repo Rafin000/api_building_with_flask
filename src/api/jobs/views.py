@@ -41,24 +41,44 @@ class Jobs(Resource):
         if get_job_by_title_company_start_date(title=title, company=company, start_date=start_date, user_id=user_id):
             jobs_namespace.abort(400, 'There already exist job with same name and company and start date for this user')
         
-        if end_date is not None and start_date > end_date:
-            jobs_namespace.abort(400, 'Start date cant be greater than End date')
+        # if end_date is not None and start_date > end_date:
+        #     jobs_namespace.abort(400, 'Start date cant be greater than End date')
 
-        latest_job = get_all_jobs_by_user_id(user_id=user_id)
+        # latest_job = get_all_jobs_by_user_id(user_id=user_id)
 
-        if latest_job:
-            if end_date:
-                if latest_job[0].end_date and start_date < latest_job[0].end_date:
+        # if latest_job:
+        #     if end_date:
+        #         if latest_job[0].end_date and start_date < latest_job[0].end_date:
+        #             jobs_namespace.abort(400, 'Invalid date for new job')
+              
+
+        #     if not end_date:
+        #         if start_date < latest_job[0].start_date:
+        #             jobs_namespace.abort(400, 'Invalid date for new job')
+
+        # if start_date < latest_job[0].start_date and end_date > latest_job[0].end_date:
+        #     jobs_namespace.abort(400, 'Invalid date for new job')
+            
+        if end_date:
+            if start_date > end_date:
+                jobs_namespace.abort(400, 'Start date cant be greater than End date')
+
+            currentJob = get_current_job_by_user_id(user_id=user_id)
+
+            if currentJob:
+                if start_date < currentJob.start_date and end_date > currentJob.start_date:
                     jobs_namespace.abort(400, 'Invalid date for new job')
+                update_job_end_date(end_date=start_date)
 
-            if not end_date:
-                if start_date < latest_job[0].start_date:
+            if currentJob is None:
+                latest_job = get_all_jobs_by_user_id(user_id=user_id)
+                if latest_job[0].end_date > start_date or latest_job[0].start_date < end_date:
                     jobs_namespace.abort(400, 'Invalid date for new job')
-
-            if start_date < latest_job[0].start_date:
-                jobs_namespace.abort(400, 'Invalid date for new job')
 
         if end_date is None:
+            currentJob = get_current_job_by_user_id(user_id=user)
+            if currentJob and start_date < currentJob.start_date:
+                jobs_namespace.abort(400, 'Invalid date for new job')
             update_job_end_date(end_date=start_date)
 
         add_job(title=title, company=company, user_id=user_id, start_date=start_date, end_date=end_date)
