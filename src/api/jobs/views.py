@@ -45,21 +45,24 @@ class Jobs(Resource):
             jobs_namespace.abort(400, 'Start date cant be greater than End date')
 
         latest_job = get_all_jobs_by_user_id(user_id=user_id)
-        
-        if end_date:
-            if start_date < latest_job[0].end_date:
-                jobs_namespace.abort(400, 'Invalid date for new job')
 
-        if not end_date:
+        if latest_job:
+            if end_date:
+                if latest_job[0].end_date and start_date < latest_job[0].end_date:
+                    jobs_namespace.abort(400, 'Invalid date for new job')
+
+            if not end_date:
+                if start_date < latest_job[0].start_date:
+                    jobs_namespace.abort(400, 'Invalid date for new job')
+
             if start_date < latest_job[0].start_date:
                 jobs_namespace.abort(400, 'Invalid date for new job')
-        
+
         if end_date is None:
             update_job_end_date(end_date=start_date)
 
         add_job(title=title, company=company, user_id=user_id, start_date=start_date, end_date=end_date)
         return {'message' : f'Job {title} was added for user with id {user_id}!'}, 201
-
     
 
 class CurrentJob(Resource):
