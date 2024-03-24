@@ -24,7 +24,6 @@ def is_valid_start_and_end_date(start_date, end_date, user_id):
             if job.start_date and job.end_date:
                 if (job.start_date < end_date and job.end_date > start_date) or (job.end_date < end_date and job.start_date > start_date):
                     abort(400, {'message': 'Conflict With Another Job'})
-
     else: 
         if jobs:
             last_job = jobs[0]
